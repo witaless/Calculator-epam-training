@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">Calculator</string>
+
+    <string name="default_input">0</string>
+    <string name="default_output">=0</string>
+    <string name="output_format">= %1$s</string>
+    <string name="output_error">EXPRESSION ERROR</string>
+    <string name="message_input_clear">Input cleared</string>
+    <string name="message_copy_to_clipboard">Copied to clipboard</string>
+
+    <string name="num_7">7</string>
+    <string name="num_8">8</string>
+    <string name="num_9">9</string>
+    <string name="num_4">4</string>
+    <string name="num_5">5</string>
+    <string name="num_6">6</string>
+    <string name="num_1">1</string>
+    <string name="num_2">2</string>
+    <string name="num_3">3</string>
+    <string name="num_0">0</string>
+
+    <string name="button_dot">.</string>
+    <string name="button_equals">=</string>
+    <string name="button_del">del</string>
+    <string name="button_divide">÷</string>
+    <string name="button_multiply">×</string>
+    <string name="button_minus">−</string>
+    <string name="button_plus">+</string>
+
+
+</resources>
