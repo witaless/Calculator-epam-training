@@ -60,7 +60,6 @@ public class MainActivity extends AppCompatActivity implements  View.OnClickList
             @Override
             public void onCreateContextMenu(ContextMenu menu, View v,
                                             ContextMenu.ContextMenuInfo menuInfo) {
-                // TODO Auto-generated method stub
                 menu.clear();
             }
         });
