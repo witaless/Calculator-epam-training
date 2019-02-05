@@ -60,6 +60,7 @@
                                       <entry key="backgroundAssetType" value="COLOR" />
                                       <entry key="backgroundColor" value="1a9cb0" />
                                       <entry key="foregroundImage" value="C:\Users\Wital\Downloads\calculator_variant.xml" />
+                                      <entry key="generateWebIcon" value="false" />
                                       <entry key="previewDensity" value="XXXHIGH" />
                                     </map>
                                   </option>
