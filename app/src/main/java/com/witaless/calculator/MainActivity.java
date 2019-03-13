@@ -25,8 +25,8 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private EditText mEditTextInput;
-    private TextView mTextViewOutput;
+    private EditText editTextInput;
+    private TextView textViewOutput;
 
     private boolean flagInputToClear = false;
 
@@ -39,10 +39,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void setupViews() {
-        mEditTextInput = findViewById(R.id.editText_Input);
-        mTextViewOutput = findViewById(R.id.textView_Output);
+        editTextInput = findViewById(R.id.editText_Input);
+        textViewOutput = findViewById(R.id.textView_Output);
 
-        mEditTextInput.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
+        editTextInput.setCustomSelectionActionModeCallback(new ActionMode.Callback() {
 
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
                 return false;
@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             public void onDestroyActionMode(ActionMode actionMode) {
             }
         });
-        mEditTextInput.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
+        editTextInput.setOnCreateContextMenuListener(new View.OnCreateContextMenuListener() {
 
             @Override
             public void onCreateContextMenu(ContextMenu menu, View v,
@@ -67,13 +67,13 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 menu.clear();
             }
         });
-        mEditTextInput.setLongClickable(false);
-        mEditTextInput.setTextIsSelectable(false);
+        editTextInput.setLongClickable(false);
+        editTextInput.setTextIsSelectable(false);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mEditTextInput.setShowSoftInputOnFocus(false);
+            editTextInput.setShowSoftInputOnFocus(false);
         } else {
-            mEditTextInput.setOnTouchListener(new View.OnTouchListener() {
+            editTextInput.setOnTouchListener(new View.OnTouchListener() {
                 @Override
                 public boolean onTouch(View v, MotionEvent event) {
                     v.onTouchEvent(event);
@@ -126,14 +126,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             @Override
             public boolean onLongClick(View v) {
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
-                mEditTextInput.getText().clear();
+                editTextInput.getText().clear();
                 tryToCalculateExpression();
                 showToast(getString(R.string.message_input_clear));
                 return false;
             }
         });
 
-        mTextViewOutput.setOnLongClickListener(new View.OnLongClickListener() {
+        textViewOutput.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
                 v.performHapticFeedback(HapticFeedbackConstants.LONG_PRESS);
@@ -214,7 +214,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case R.id.button_plus:
                 insertOperator('+');
                 break;
-                
+
 
             default:
                 break;
@@ -224,82 +224,85 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void insertNum(char num) {
         checkFlagInputToClear();
-        int position = mEditTextInput.getSelectionStart();
-        StringBuilder stringBuilder = new StringBuilder(mEditTextInput.getText().toString());
+        int position = editTextInput.getSelectionStart();
+        StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
         stringBuilder.insert(position, num);
-        mEditTextInput.setText(stringBuilder.toString());
-        mEditTextInput.setSelection(position + 1);
+        editTextInput.setText(stringBuilder.toString());
+        editTextInput.setSelection(position + 1);
         tryToCalculateExpression();
-
     }
 
     private void insertZero() {
         checkFlagInputToClear();
-        int position = mEditTextInput.getSelectionStart();
-        StringBuilder stringBuilder = new StringBuilder(mEditTextInput.getText().toString());
+        int position = editTextInput.getSelectionStart();
+        StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
+
         if (position == 0 && stringBuilder.length() > 0 && stringBuilder.charAt(0) == '0') {
             return;
         }
+
         stringBuilder.insert(position, '0');
-        mEditTextInput.setText(stringBuilder.toString());
-        mEditTextInput.setSelection(position + 1);
+        editTextInput.setText(stringBuilder.toString());
+        editTextInput.setSelection(position + 1);
         tryToCalculateExpression();
     }
 
     private void insertDot() {
         checkFlagInputToClear();
-        int position = mEditTextInput.getSelectionStart();
+        int position = editTextInput.getSelectionStart();
 
         if (position == 0) {
-
             return;
         }
 
-        StringBuilder stringBuilder = new StringBuilder(mEditTextInput.getText().toString());
+        StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
         char prevChar = stringBuilder.charAt(position - 1);
         boolean prevCharIsOperator = prevChar == '÷' || prevChar == '×' || prevChar == '−' || prevChar == '+';
 
         if (prevChar == '.') {
-
             return;
         }
 
         if (prevCharIsOperator) {
-
             return;
         }
+
         stringBuilder.insert(position, '.');
-        mEditTextInput.setText(stringBuilder.toString());
-        mEditTextInput.setSelection(position + 1);
+        editTextInput.setText(stringBuilder.toString());
+        editTextInput.setSelection(position + 1);
         tryToCalculateExpression();
     }
 
     private void insertOperator(char operator) {
         checkFlagInputToClear();
-        int position = mEditTextInput.getSelectionStart();
-        StringBuilder stringBuilder = new StringBuilder(mEditTextInput.getText().toString());
+        int position = editTextInput.getSelectionStart();
+        StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
+
         if (operator == '−') {
             stringBuilder.insert(position, operator);
-            mEditTextInput.setText(stringBuilder.toString());
-            mEditTextInput.setSelection(position + 1);
+            editTextInput.setText(stringBuilder.toString());
+            editTextInput.setSelection(position + 1);
             tryToCalculateExpression();
+
             return;
         }
+
         if (position == 0) {
             return;
         }
+
         char prevChar = stringBuilder.charAt(position - 1);
         boolean prevCharIsOperator = prevChar == '÷' || prevChar == '×' || prevChar == '−' || prevChar == '+';
 
         if (prevCharIsOperator) {
             stringBuilder.deleteCharAt(position - 1);
             stringBuilder.insert(position - 1, operator);
-            mEditTextInput.setText(stringBuilder.toString());
-            mEditTextInput.setSelection(position);
+            editTextInput.setText(stringBuilder.toString());
+            editTextInput.setSelection(position);
         } else {
             stringBuilder.insert(position, operator);
-            mEditTextInput.setText(stringBuilder.toString());
-            mEditTextInput.setSelection(position + 1);
+            editTextInput.setText(stringBuilder.toString());
+            editTextInput.setSelection(position + 1);
         }
 
         tryToCalculateExpression();
@@ -308,46 +311,50 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void deleteChar() {
         checkFlagInputToClear();
-        int position = mEditTextInput.getSelectionStart();
+        int position = editTextInput.getSelectionStart();
+
         if (position > 0) {
-            StringBuilder stringBuilder = new StringBuilder(mEditTextInput.getText().toString());
+            StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
             stringBuilder.deleteCharAt(position - 1);
-            mEditTextInput.setText(stringBuilder.toString());
-            mEditTextInput.setSelection(position - 1);
+            editTextInput.setText(stringBuilder.toString());
+            editTextInput.setSelection(position - 1);
         }
+
         tryToCalculateExpression();
     }
 
     private void tryToCalculateExpression() {
-        ResultModel result = Calculator.calculate(mEditTextInput.getText().toString());
-        mTextViewOutput.setText(String.format(getString(R.string.output_format), result.getResult()));
+        ResultModel result = Calculator.calculate(editTextInput.getText().toString());
+        textViewOutput.setText(String.format(getString(R.string.output_format), result.getResult()));
     }
 
     private void equals() {
         checkFlagInputToClear();
-        if (mEditTextInput.getText().toString().length() == 0) {
+
+        if (editTextInput.getText().toString().length() == 0) {
             return;
         }
-        ResultModel result = Calculator.calculate(mEditTextInput.getText().toString());
+
+        ResultModel result = Calculator.calculate(editTextInput.getText().toString());
+
         if (!result.isError()) {
-            mEditTextInput.setText(result.getResult());
-            mEditTextInput.setSelection(result.getResult().length());
-            mTextViewOutput.setText(String.format(getString(R.string.output_format), result.getResult()));
+            editTextInput.setText(result.getResult());
+            editTextInput.setSelection(result.getResult().length());
+            textViewOutput.setText(String.format(getString(R.string.output_format), result.getResult()));
             flagInputToClear = true;
         } else {
-           showCalculationError();
+            showCalculationError();
         }
-
     }
 
 
-    private void showCalculationError(){
-        mTextViewOutput.setText(R.string.output_error);
-        int defaultColor = mTextViewOutput.getCurrentTextColor();
+    private void showCalculationError() {
+        textViewOutput.setText(R.string.output_error);
+        int defaultColor = textViewOutput.getCurrentTextColor();
         Button button_equals = findViewById(R.id.button_equals);
 
         button_equals.setOnClickListener(null);
-        ObjectAnimator anim = ObjectAnimator.ofInt(mTextViewOutput, "textColor", getResources().getColor(R.color.colorError), defaultColor);
+        ObjectAnimator anim = ObjectAnimator.ofInt(textViewOutput, "textColor", getResources().getColor(R.color.colorError), defaultColor);
         anim.setEvaluator(new ArgbEvaluator());
         anim.setDuration(800);
         anim.addListener(new AnimatorListenerAdapter() {
@@ -362,15 +369,14 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void checkFlagInputToClear() {
         if (flagInputToClear) {
-            mEditTextInput.getText().clear();
-            mTextViewOutput.setText(getString(R.string.default_input));
+            editTextInput.getText().clear();
+            textViewOutput.setText(getString(R.string.default_input));
             flagInputToClear = false;
         }
     }
 
     private void enableEqualsListener() {
         Button button_equals = findViewById(R.id.button_equals);
-
         button_equals.setOnClickListener(this);
     }
 
@@ -380,8 +386,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     private void copyOutputToClipBoard() {
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
-        ClipData clip = ClipData.newPlainText("output", mTextViewOutput.getText().toString());
-
+        ClipData clip = ClipData.newPlainText("output", textViewOutput.getText().toString());
         clipboard.setPrimaryClip(clip);
     }
 }

@@ -112,11 +112,11 @@ public class Calculator {
         while (reversePolishNotation.size() != 0) {
 
             if (getPriority(reversePolishNotation.peekFirst().charAt(0)) == -1) {
-                Log.d(TAG, "prior:" + getPriority(reversePolishNotation.peekFirst().charAt(0)));
                 stack.push(new BigDecimal(reversePolishNotation.pollFirst()));
             } else {
                 BigDecimal rightOperand = stack.pop();
                 BigDecimal leftOperand = stack.pop();
+
                 switch (reversePolishNotation.pollFirst().charAt(0)) {
                     case CHAR_DIVIDE:
                         stack.push(leftOperand.divide(rightOperand, 20, BigDecimal.ROUND_HALF_DOWN));
@@ -157,12 +157,16 @@ public class Calculator {
         switch (operand) {
             case CHAR_PLUS:
                 return 1;
+
             case CHAR_MINUS:
                 return 1;
+
             case CHAR_MULTIPLY:
                 return 2;
+
             case CHAR_DIVIDE:
                 return 2;
+
             default:
                 return -1;
         }
