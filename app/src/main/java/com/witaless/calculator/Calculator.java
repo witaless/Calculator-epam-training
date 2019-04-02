@@ -1,7 +1,5 @@
 package com.witaless.calculator;
 
-import android.util.Log;
-
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
@@ -11,32 +9,31 @@ import java.util.Stack;
 
 public class Calculator {
 
-    private static final char CHAR_MINUS = '−';
-    private static final char CHAR_PLUS = '+';
-    private static final char CHAR_DIVIDE = '÷';
-    private static final char CHAR_MULTIPLY = '×';
-
-    private static String TAG = Calculator.class.getSimpleName();
+    private static final String EXPONENT = "E";
+    private static final String NO_EXPONENT_PATTERN = "#,##0.0##################";
+    private static final String EXPONENT_PATTERN = "0.#################E0";
+    private static final int NOT_OPERATOR = -1;
+    private static final char MINUS = '-';
 
     public static ResultModel calculate(String input) {
         ResultModel result = new ResultModel();
-        result.setResult("");
+        result.setResult(Const.STRING_EMPTY);
         result.setError(false);
         ArrayDeque<String> reversePolishNotation = getReversePolishNotation(input);
 
         if (reversePolishNotation.size() < 1) {
             result.setError(true);
-            result.setResult("");
+            result.setResult(Const.STRING_EMPTY);
 
             return result;
         }
 
         try {
-            result.setResult(calcRPNExpression(reversePolishNotation));
+            result.setResult(calculateReversePolishNotationExpression(reversePolishNotation));
         } catch (Exception e) {
-            Log.d(TAG, "Calc exception: " + e);
+            e.printStackTrace();
             result.setError(true);
-            result.setResult("");
+            result.setResult(Const.STRING_EMPTY);
 
             return result;
         }
@@ -47,39 +44,40 @@ public class Calculator {
     private static ArrayDeque<String> getReversePolishNotation(String infixNotation) {
         ArrayDeque<String> reversePolishNotation = new ArrayDeque<>();
         Stack<Character> stack = new Stack<>();
-        String toPush = "";
+        String toPush = Const.STRING_EMPTY;
         int countOperand = 0;
         int countOperator = 0;
 
         for (int i = 0; i < infixNotation.length(); i++) {
+            char currentChar = infixNotation.charAt(i);
+            if (i == 0 && isMinus(currentChar)) {
 
-            if ((i == 0 && infixNotation.charAt(i) == CHAR_MINUS) ||
-                    (i > 0 && infixNotation.charAt(i) == CHAR_MINUS &&
-                            getPriority(infixNotation.charAt(i - 1)) != -1 && toPush.length() < 1)) {
+                toPush += MINUS;
+            } else if (i > 0 && isMinus(currentChar) && !isNotOperator(infixNotation.charAt(i - 1))  && toPush.length() < 1) {
 
-                toPush += '-';
+                toPush += MINUS;
             } else {
 
-                if (getPriority(infixNotation.charAt(i)) == -1) {
-                    toPush += infixNotation.charAt(i);
+                if (getPriority(currentChar) == NOT_OPERATOR) {
+                    toPush += currentChar;
                 } else {
                     reversePolishNotation.add(toPush);
                     countOperand++;
-                    toPush = "";
+                    toPush = Const.STRING_EMPTY;
 
                     if (stack.size() < 1) {
-                        stack.push(infixNotation.charAt(i));
+                        stack.push(currentChar);
                         countOperator++;
-                    } else if (getPriority(infixNotation.charAt(i)) <= getPriority(stack.peek())) {
+                    } else if (getPriority(currentChar) <= getPriority(stack.peek())) {
 
                         while (stack.size() > 0) {
-                            reversePolishNotation.add(stack.pop() + "");
+                            reversePolishNotation.add(stack.pop() + Const.STRING_EMPTY);
                         }
 
-                        stack.push(infixNotation.charAt(i));
+                        stack.push(currentChar);
                         countOperator++;
                     } else {
-                        stack.push(infixNotation.charAt(i));
+                        stack.push(currentChar);
                         countOperator++;
                     }
                 }
@@ -93,10 +91,8 @@ public class Calculator {
         }
 
         while (stack.size() > 0) {
-            reversePolishNotation.add(stack.pop() + "");
+            reversePolishNotation.add(stack.pop() + Const.STRING_EMPTY);
         }
-
-        Log.d(TAG, "Operators:" + countOperator + " Operands:" + countOperand);
 
         if (countOperand - countOperator != 1) {
             return new ArrayDeque<>();
@@ -105,32 +101,40 @@ public class Calculator {
         return reversePolishNotation;
     }
 
-    private static String calcRPNExpression(ArrayDeque<String> reversePolishNotation) {
-        String result = "";
+    private static boolean isNotOperator(char symbol){
+        return getPriority(symbol) == NOT_OPERATOR;
+    }
+
+    private static boolean isMinus(char symbol){
+        return symbol == Const.CHAR_MINUS;
+    }
+
+    private static String calculateReversePolishNotationExpression(ArrayDeque<String> reversePolishNotation) {
+        String result = Const.STRING_EMPTY;
         Stack<BigDecimal> stack = new Stack<>();
 
         while (reversePolishNotation.size() != 0) {
 
-            if (getPriority(reversePolishNotation.peekFirst().charAt(0)) == -1) {
+            if (getPriority(reversePolishNotation.peekFirst().charAt(0)) == NOT_OPERATOR) {
                 stack.push(new BigDecimal(reversePolishNotation.pollFirst()));
             } else {
                 BigDecimal rightOperand = stack.pop();
                 BigDecimal leftOperand = stack.pop();
 
                 switch (reversePolishNotation.pollFirst().charAt(0)) {
-                    case CHAR_DIVIDE:
+                    case Const.CHAR_DIVIDE:
                         stack.push(leftOperand.divide(rightOperand, 20, BigDecimal.ROUND_HALF_DOWN));
                         break;
 
-                    case CHAR_MULTIPLY:
+                    case Const.CHAR_MULTIPLY:
                         stack.push(leftOperand.multiply(rightOperand));
                         break;
 
-                    case CHAR_MINUS:
+                    case Const.CHAR_MINUS:
                         stack.push(leftOperand.subtract(rightOperand));
                         break;
 
-                    case CHAR_PLUS:
+                    case Const.CHAR_PLUS:
                         stack.push(leftOperand.add(rightOperand));
                         break;
 
@@ -141,10 +145,10 @@ public class Calculator {
         }
 
         if (stack.size() > 0) {
-            DecimalFormat df = new DecimalFormat("#,##0.0##################", DecimalFormatSymbols.getInstance(Locale.ROOT));
+            DecimalFormat df = new DecimalFormat(NO_EXPONENT_PATTERN, DecimalFormatSymbols.getInstance(Locale.ROOT));
 
-            if (stack.peek().toEngineeringString().contains("E")) {
-                df = new DecimalFormat("0.#################E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
+            if (stack.peek().toEngineeringString().contains(EXPONENT)) {
+                df = new DecimalFormat(EXPONENT_PATTERN, DecimalFormatSymbols.getInstance(Locale.ROOT));
             }
 
             result = df.format(stack.pop());
@@ -153,24 +157,23 @@ public class Calculator {
         return result;
     }
 
-    private static int getPriority(char operand) {
-        switch (operand) {
-            case CHAR_PLUS:
+    private static int getPriority(char symbol) {
+        switch (symbol) {
+            case Const.CHAR_PLUS:
                 return 1;
 
-            case CHAR_MINUS:
+            case Const.CHAR_MINUS:
                 return 1;
 
-            case CHAR_MULTIPLY:
+            case Const.CHAR_MULTIPLY:
                 return 2;
 
-            case CHAR_DIVIDE:
+            case Const.CHAR_DIVIDE:
                 return 2;
 
             default:
-                return -1;
+                return NOT_OPERATOR;
         }
     }
-
 
 }

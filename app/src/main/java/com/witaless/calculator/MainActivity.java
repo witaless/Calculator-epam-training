@@ -25,6 +25,18 @@ import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
+    public static final char NUM_ONE = '1';
+    public static final char NUM_TWO = '2';
+    public static final char NUM_THREE = '3';
+    public static final char NUM_FOUR = '4';
+    public static final char NUM_FIVE = '5';
+    public static final char NUM_SIX = '6';
+    public static final char NUM_SEVEN = '7';
+    public static final char NUM_EIGHT = '8';
+    public static final char NUM_NINE = '9';
+    public static final char NUM_ZERO = '0';
+    public static final char DOT = '.';
+
     private EditText editTextInput;
     private TextView textViewOutput;
 
@@ -148,39 +160,39 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.button_num_1:
-                insertNum('1');
+                insertNum(NUM_ONE);
                 break;
 
             case R.id.button_num_2:
-                insertNum('2');
+                insertNum(NUM_TWO);
                 break;
 
             case R.id.button_num_3:
-                insertNum('3');
+                insertNum(NUM_THREE);
                 break;
 
             case R.id.button_num_4:
-                insertNum('4');
+                insertNum(NUM_FOUR);
                 break;
 
             case R.id.button_num_5:
-                insertNum('5');
+                insertNum(NUM_FIVE);
                 break;
 
             case R.id.button_num_6:
-                insertNum('6');
+                insertNum(NUM_SIX);
                 break;
 
             case R.id.button_num_7:
-                insertNum('7');
+                insertNum(NUM_SEVEN);
                 break;
 
             case R.id.button_num_8:
-                insertNum('8');
+                insertNum(NUM_EIGHT);
                 break;
 
             case R.id.button_num_9:
-                insertNum('9');
+                insertNum(NUM_NINE);
                 break;
 
             case R.id.button_num_0:
@@ -200,19 +212,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 break;
 
             case R.id.button_divide:
-                insertOperator('÷');
+                insertOperator(Const.CHAR_DIVIDE);
                 break;
 
             case R.id.button_multiply:
-                insertOperator('×');
+                insertOperator(Const.CHAR_MULTIPLY);
                 break;
 
             case R.id.button_minus:
-                insertOperator('−');
+                insertOperator(Const.CHAR_MINUS);
                 break;
 
             case R.id.button_plus:
-                insertOperator('+');
+                insertOperator(Const.CHAR_PLUS);
                 break;
 
 
@@ -237,11 +249,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int position = editTextInput.getSelectionStart();
         StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
 
-        if (position == 0 && stringBuilder.length() > 0 && stringBuilder.charAt(0) == '0') {
+        if (position == 0 && stringBuilder.length() > 0 && stringBuilder.charAt(0) == NUM_ZERO) {
             return;
         }
 
-        stringBuilder.insert(position, '0');
+        stringBuilder.insert(position, NUM_ZERO);
         editTextInput.setText(stringBuilder.toString());
         editTextInput.setSelection(position + 1);
         tryToCalculateExpression();
@@ -257,9 +269,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
         char prevChar = stringBuilder.charAt(position - 1);
-        boolean prevCharIsOperator = prevChar == '÷' || prevChar == '×' || prevChar == '−' || prevChar == '+';
+        boolean prevCharIsOperator = isCharOperator(prevChar);
 
-        if (prevChar == '.') {
+        if (prevChar == DOT) {
             return;
         }
 
@@ -267,7 +279,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             return;
         }
 
-        stringBuilder.insert(position, '.');
+        stringBuilder.insert(position, DOT);
         editTextInput.setText(stringBuilder.toString());
         editTextInput.setSelection(position + 1);
         tryToCalculateExpression();
@@ -278,7 +290,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int position = editTextInput.getSelectionStart();
         StringBuilder stringBuilder = new StringBuilder(editTextInput.getText().toString());
 
-        if (operator == '−') {
+        if (operator == Const.CHAR_MINUS) {
             stringBuilder.insert(position, operator);
             editTextInput.setText(stringBuilder.toString());
             editTextInput.setSelection(position + 1);
@@ -292,7 +304,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         char prevChar = stringBuilder.charAt(position - 1);
-        boolean prevCharIsOperator = prevChar == '÷' || prevChar == '×' || prevChar == '−' || prevChar == '+';
+        boolean prevCharIsOperator = isCharOperator(prevChar);
 
         if (prevCharIsOperator) {
             stringBuilder.deleteCharAt(position - 1);
@@ -347,7 +359,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-
     private void showCalculationError() {
         textViewOutput.setText(R.string.output_error);
         int defaultColor = textViewOutput.getCurrentTextColor();
@@ -388,5 +399,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         ClipboardManager clipboard = (ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
         ClipData clip = ClipData.newPlainText("output", textViewOutput.getText().toString());
         clipboard.setPrimaryClip(clip);
+    }
+
+    private boolean isCharOperator(char symbol){
+        return symbol == Const.CHAR_DIVIDE || symbol == Const.CHAR_MULTIPLY || symbol == Const.CHAR_MINUS || symbol == Const.CHAR_PLUS;
     }
 }
