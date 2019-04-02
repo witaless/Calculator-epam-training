@@ -1,10 +1,6 @@
 package com.witaless.calculator;
 
-import android.util.Log;
-
 import java.math.BigDecimal;
-
-
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.util.ArrayDeque;
@@ -12,146 +8,172 @@ import java.util.Locale;
 import java.util.Stack;
 
 public class Calculator {
-    private static final char CHAR_MINUS='−';
-    private static final char CHAR_PLUS='+';
-    private static final char CHAR_DIVIDE='÷';
-    private static final char CHAR_MULTIPLY='×';
 
-    private static String TAG =Calculator.class.getSimpleName();
-    public static Result calculate(String input){
-        Result result = new Result();
-        result.setResult("");
+    private static final String EXPONENT = "E";
+    private static final String NO_EXPONENT_PATTERN = "#,##0.0##################";
+    private static final String EXPONENT_PATTERN = "0.#################E0";
+    private static final int NOT_OPERATOR = -1;
+    private static final char MINUS = '-';
+
+    public static ResultModel calculate(String input) {
+        ResultModel result = new ResultModel();
+        result.setResult(Const.STRING_EMPTY);
         result.setError(false);
-        ArrayDeque<String> rpn = getReversePolishNotation(input);
-        if(rpn.size()<1){
+        ArrayDeque<String> reversePolishNotation = getReversePolishNotation(input);
+
+        if (reversePolishNotation.size() < 1) {
             result.setError(true);
-            result.setResult("");
+            result.setResult(Const.STRING_EMPTY);
+
             return result;
         }
 
-        try{
-            result.setResult(calcRPNExpression(rpn));
-        }catch (Exception e){
-            //Log.d(TAG,"Calc exception: "+e);
+        try {
+            result.setResult(calculateReversePolishNotationExpression(reversePolishNotation));
+        } catch (Exception e) {
+            e.printStackTrace();
             result.setError(true);
-            result.setResult("");
+            result.setResult(Const.STRING_EMPTY);
+
             return result;
         }
+
         return result;
     }
 
-    private static ArrayDeque<String> getReversePolishNotation(String infixNotation){
-        ArrayDeque<String> rpn = new ArrayDeque<>();
+    private static ArrayDeque<String> getReversePolishNotation(String infixNotation) {
+        ArrayDeque<String> reversePolishNotation = new ArrayDeque<>();
         Stack<Character> stack = new Stack<>();
-        String toPush="";
-        int countOperand=0;
-        int countOperator=0;
-        for(int i =0;i<infixNotation.length();i++){
-            //Log.d(TAG,"i="+i+" symbol="+infixNotation.charAt(i) +" toPush="+toPush+ " rpn="+rpn  +" stack="+stack);
-            //Log.d(TAG,"FIRST SYMBOL IS MiNUS="+(i==0&&infixNotation.charAt(i)==CHAR_MINUS));
-            if((i==0&&infixNotation.charAt(i)==CHAR_MINUS )|| (i>0 && infixNotation.charAt(i)==CHAR_MINUS && getPriority(infixNotation.charAt(i-1))!=-1 && toPush.length()<1 )){
-                toPush += '-';
+        String toPush = Const.STRING_EMPTY;
+        int countOperand = 0;
+        int countOperator = 0;
+
+        for (int i = 0; i < infixNotation.length(); i++) {
+            char currentChar = infixNotation.charAt(i);
+            if (i == 0 && isMinus(currentChar)) {
+
+                toPush += MINUS;
+            } else if (i > 0 && isMinus(currentChar) && !isNotOperator(infixNotation.charAt(i - 1))  && toPush.length() < 1) {
+
+                toPush += MINUS;
             } else {
-            if(getPriority(infixNotation.charAt(i))==-1){
-                toPush += infixNotation.charAt(i);
-            } else {
-                rpn.add(toPush);
-                countOperand++;
-                toPush="";
-                if(stack.size()<1){
-                    stack.push(infixNotation.charAt(i));
-                    countOperator++;
-                } else if(getPriority(infixNotation.charAt(i))<=getPriority(stack.peek())) {
-                    while (stack.size()>0){
-                        rpn.add(stack.pop()+"");
-                    }
-                    stack.push(infixNotation.charAt(i));
-                    countOperator++;
+
+                if (getPriority(currentChar) == NOT_OPERATOR) {
+                    toPush += currentChar;
                 } else {
-                    stack.push(infixNotation.charAt(i));
-                    countOperator++;
+                    reversePolishNotation.add(toPush);
+                    countOperand++;
+                    toPush = Const.STRING_EMPTY;
+
+                    if (stack.size() < 1) {
+                        stack.push(currentChar);
+                        countOperator++;
+                    } else if (getPriority(currentChar) <= getPriority(stack.peek())) {
+
+                        while (stack.size() > 0) {
+                            reversePolishNotation.add(stack.pop() + Const.STRING_EMPTY);
+                        }
+
+                        stack.push(currentChar);
+                        countOperator++;
+                    } else {
+                        stack.push(currentChar);
+                        countOperator++;
+                    }
                 }
             }
-            }
-
-            //Log.d(TAG,"i="+i+" symbol="+infixNotation.charAt(i) +" toPush="+toPush+ " rpn="+rpn  +" stack="+stack);
 
         }
-        if(toPush.length()>0){
-            rpn.add(toPush);
+
+        if (toPush.length() > 0) {
+            reversePolishNotation.add(toPush);
             countOperand++;
         }
-        while (stack.size()>0){
-             rpn.add(stack.pop()+"");
+
+        while (stack.size() > 0) {
+            reversePolishNotation.add(stack.pop() + Const.STRING_EMPTY);
         }
-        Log.d(TAG,"Operators:"+countOperator+" Operands:"+countOperand);
-        if(countOperand-countOperator!=1){
+
+        if (countOperand - countOperator != 1) {
             return new ArrayDeque<>();
         }
-        return rpn;
+
+        return reversePolishNotation;
     }
-    private static String calcRPNExpression(ArrayDeque<String> rpn){
-        String result="";
-        Stack<BigDecimal> stack=new Stack<>();
-        while(rpn.size()!=0){
-            Log.d(TAG,"<-rpn:"+rpn+" current:"+rpn.getFirst() +" stack:" +stack);
-            if(getPriority(rpn.peekFirst().charAt(0))==-1){
-                Log.d(TAG,"prior:"+getPriority(rpn.peekFirst().charAt(0)));
-                stack.push(new BigDecimal(rpn.pollFirst()));
+
+    private static boolean isNotOperator(char symbol){
+        return getPriority(symbol) == NOT_OPERATOR;
+    }
+
+    private static boolean isMinus(char symbol){
+        return symbol == Const.CHAR_MINUS;
+    }
+
+    private static String calculateReversePolishNotationExpression(ArrayDeque<String> reversePolishNotation) {
+        String result = Const.STRING_EMPTY;
+        Stack<BigDecimal> stack = new Stack<>();
+
+        while (reversePolishNotation.size() != 0) {
+
+            if (getPriority(reversePolishNotation.peekFirst().charAt(0)) == NOT_OPERATOR) {
+                stack.push(new BigDecimal(reversePolishNotation.pollFirst()));
             } else {
-                BigDecimal rightOperand =stack.pop();
-                BigDecimal leftOperand =stack.pop();
-                switch (rpn.pollFirst().charAt(0)){
-                    case CHAR_DIVIDE:
-                        stack.push(leftOperand.divide(rightOperand,20,BigDecimal.ROUND_HALF_DOWN));break;
-                    case  CHAR_MULTIPLY:
-                        stack.push(leftOperand.multiply(rightOperand));break;
-                    case CHAR_MINUS:
-                        stack.push(leftOperand.subtract(rightOperand));break;
-                    case CHAR_PLUS:
-                        stack.push(leftOperand.add(rightOperand));break;
-                        default:
-                            break;
+                BigDecimal rightOperand = stack.pop();
+                BigDecimal leftOperand = stack.pop();
+
+                switch (reversePolishNotation.pollFirst().charAt(0)) {
+                    case Const.CHAR_DIVIDE:
+                        stack.push(leftOperand.divide(rightOperand, 20, BigDecimal.ROUND_HALF_DOWN));
+                        break;
+
+                    case Const.CHAR_MULTIPLY:
+                        stack.push(leftOperand.multiply(rightOperand));
+                        break;
+
+                    case Const.CHAR_MINUS:
+                        stack.push(leftOperand.subtract(rightOperand));
+                        break;
+
+                    case Const.CHAR_PLUS:
+                        stack.push(leftOperand.add(rightOperand));
+                        break;
+
+                    default:
+                        break;
                 }
             }
         }
-        if(stack.size()>0){
-            DecimalFormat df = new DecimalFormat("#,##0.0##################", DecimalFormatSymbols.getInstance(Locale.ROOT));
-            if(stack.peek().toEngineeringString().contains("E")) { //check for exponent
-                df = new DecimalFormat("0.#################E0", DecimalFormatSymbols.getInstance(Locale.ROOT));
+
+        if (stack.size() > 0) {
+            DecimalFormat df = new DecimalFormat(NO_EXPONENT_PATTERN, DecimalFormatSymbols.getInstance(Locale.ROOT));
+
+            if (stack.peek().toEngineeringString().contains(EXPONENT)) {
+                df = new DecimalFormat(EXPONENT_PATTERN, DecimalFormatSymbols.getInstance(Locale.ROOT));
             }
-            result=df.format(stack.pop());
+
+            result = df.format(stack.pop());
         }
+
         return result;
     }
 
-    private static int getPriority(char operand){
-        switch (operand){
-            case CHAR_PLUS: return 1;
-            case CHAR_MINUS: return 1;
-            case CHAR_MULTIPLY: return 2;
-            case CHAR_DIVIDE: return 2;
-            default: return -1;
+    private static int getPriority(char symbol) {
+        switch (symbol) {
+            case Const.CHAR_PLUS:
+                return 1;
+
+            case Const.CHAR_MINUS:
+                return 1;
+
+            case Const.CHAR_MULTIPLY:
+                return 2;
+
+            case Const.CHAR_DIVIDE:
+                return 2;
+
+            default:
+                return NOT_OPERATOR;
         }
     }
-    public static class Result{
-        private String result;
-        private boolean error;
 
-        public String getResult() {
-            return result;
-        }
-
-        public void setResult(String result) {
-            this.result = result;
-        }
-
-        public boolean isError() {
-            return error;
-        }
-
-        public void setError(boolean error) {
-            this.error = error;
-        }
-    }
 }
